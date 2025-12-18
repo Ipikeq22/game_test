@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WishSnap 願望脆響 | 試玩版</title>
+    <!-- 引入 SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- 引入 Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- 引入彩帶動畫庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        /* ==================== 
+           CSS 樣式區域 
+           ==================== */
+        
+        :root {
+            --primary-color: #ff5a78; /* 品牌主色 */
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('png/bg.png'); /* 預留您的背景圖路徑 */
+            background-color: #fcebd9; /* 備用背景色 */
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+            user-select: none; /* 防止選取文字影響體驗 */
+        }
+
+        /* 品牌 Logo 區 */
+        .brand-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #d35400;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px #fff;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .brand-slogan {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        .game-container {
+            text-align: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* 餅乾機樣式 - 增加互動游標 */
+        .cookie-machine {
+            max-width: 300px;
+            width: 80vw;
+            margin-bottom: 20px;
+            cursor: grab; /* 提示可以抓取 */
+            transition: transform 0.1s;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+        }
+
+        .cookie-machine:active {
+            cursor: grabbing; /* 抓取時的游標 */
+            transform: scale(0.98);
+        }
+
+        /* 提示文字 */
+        .shake-hint {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 15px;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* 按鈕樣式優化 */
+        .fortune-btn {
+            background: linear-gradient(45deg, #FF512F 0%, #DD2476 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(221, 36, 118, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fortune-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(221, 36, 118, 0.6);
+        }
+
+        .fortune-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 劇烈搖晃動畫 (CSS Animation) */
+        @keyframes intenseShake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-10px, -10px) rotate(-10deg); }
+            20% { transform: translate(10px, 10px) rotate(10deg); }
+            30% { transform: translate(-10px, 10px) rotate(-10deg); }
+            40% { transform: translate(10px, -10px) rotate(10deg); }
+            50% { transform: translate(-5px, 5px) rotate(-5deg); }
+            60% { transform: translate(5px, -5px) rotate(5deg); }
+            70% { transform: translate(-5px, -5px) rotate(-5deg); }
+            80% { transform: translate(5px, 5px) rotate(5deg); }
+            90% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .shake-animation {
+            animation: intenseShake 0.5s ease-in-out infinite;
+        }
+
+        /* 商業化彈窗樣式 */
+        .promo-card {
+            background: #fff5f5;
+            border: 2px dashed #ffb3b3;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        
+        .promo-title {
+            font-size: 0.9em;
+            color: #d63031;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .promo-product {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .promo-img {
+            width: 60px;
+            height: 60px;
+            background: #ddd;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .promo-info h4 {
+            margin: 0;
+            font-size: 1em;
+            color: #333;
+        }
+
+        .coupon-code {
+            display: inline-block;
+            background: #ffeaa7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            margin-top: 5px;
+            border: 1px solid #fdcb6e;
+        }
+
+        .buy-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            background: #00b894;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .buy-btn:hover {
+            background: #00a884;
+        }
+
+        /* 返回按鈕 (保留原本的) */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 音效元素 (請準備 sounds/shake.mp3 和 sounds/success.mp3) -->
+    <audio id="shake-sound" src="sounds/shake.mp3" preload="auto"></audio>
+    <audio id="success-sound" src="sounds/success.mp3" preload="auto"></audio>
+
+    <!-- 返回按鈕 -->
+    <button class="back-btn" onclick="alert('返回 Tasksnap 首頁')">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+    </button>
+
+    <!-- 品牌標題 -->
+    <div class="animate__animated animate__fadeInDown">
+        <div class="brand-title">WishSnap</div>
+        <div class="brand-slogan">Make a wish, make it snap.</div>
+    </div>
+
+    <div class="game-container animate__animated animate__zoomIn">
+        <!-- 餅乾機圖片 (使用預設圖或是 placeholder) -->
+        <!-- 注意：這裡使用了 placeholder 圖片，請替換回您的 png/cookie_machine.png -->
+        <img src="cookie_machine.png" 
+             onerror="this.src='https://placehold.co/400x400/ffeaa7/d35400?text=Cookie+Machine&font=roboto'" 
+             alt="WishSnap Machine" 
+             class="cookie-machine"
+             id="machine">
+        
+        <br>
+        
+        <!-- 提示文字 -->
+        <div class="shake-hint">
+            👋 手機搖一搖 / 🐭 電腦快速晃動滑鼠
+        </div>
+
+        <br>
+
+        <button class="fortune-btn" onclick="getFortune()">
+            <span class="front">手動抽籤</span>
+        </button>
+    </div>
+
+    <script>
+        /* ==================== 
+           JavaScript 邏輯區域 
+           ==================== */
+
+        // 1. 模擬資料庫 (包含商業化內容)
+        const fortuneDatabase = [
+            {
+                type: '大吉',
+                text: '今日適合大膽嘗試，你的創意將會變現！',
+                product: '特濃黑巧克力幸運餅乾',
+                desc: '苦甜交織的大人味，助你思緒清晰。',
+                coupon: 'LUCKY888',
+                color: '#d63031'
+            },
+            {
+                type: '中吉',
+                text: '保持耐心，好事多磨，正如烘焙需要時間。',
+                product: '經典原味香草脆餅',
+                desc: '回歸初心，最純粹的美味。',
+                coupon: 'SIMPLE20',
+                color: '#e17055'
+            },
+            {
+                type: '小確幸',
+                text: '不管今天多累，吃一口甜的就沒事了。',
+                product: '草莓煉乳夾心餅',
+                desc: '療癒系首選，心情瞬間粉紅。',
+                coupon: 'SWEET520',
+                color: '#fd79a8'
+            },
+            {
+                type: '機會',
+                text: '你正在尋找的答案，就在下一塊餅乾裡。',
+                product: '宇治抹茶紅豆餅乾',
+                desc: '深邃的茶香，帶給你平靜與智慧。',
+                coupon: 'ZEN2025',
+                color: '#00b894'
+            }
+        ];
+
+        let isShaking = false;
+        let shakeDebounce = false;
+
+        // 2. 核心抽籤函式
+        function getFortune() {
+            if (shakeDebounce) return;
+            shakeDebounce = true;
+
+            const machine = document.getElementById('machine');
+            
+            // 播放搖晃音效
+            document.getElementById('shake-sound').play().catch(e => console.error("音效播放失敗:", e));
+
+            // 視覺回饋：劇烈搖晃動畫
+            machine.classList.add('shake-animation');
+            document.querySelector('.shake-hint').innerText = "✨ 正在與宇宙連線... ✨";
+            document.querySelector('.shake-hint').style.color = "#d35400";
+            document.querySelector('.shake-hint').style.fontWeight = "bold";
+
+            // 縮短等待時間至 2 秒 (優化體驗)
+            setTimeout(() => {
+                showResult();
+                machine.classList.remove('shake-animation');
+                document.querySelector('.shake-hint').innerText = "👋 手機搖一搖 / 🐭 電腦快速晃動滑鼠";
+                document.querySelector('.shake-hint').style.color = "#555";
+                document.querySelector('.shake-hint').style.fontWeight = "normal";
+                shakeDebounce = false;
+            }, 2000);
+        }
+
+        // 3. 顯示結果 (包含商業化導購 UI)
+        function showResult() {
+            // 播放成功音效
+            document.getElementById('success-sound').play().catch(e => console.error("音效播放失敗:", e));
+
+            // 觸發彩帶動畫
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+
+            // 隨機選一個
+            const result = fortuneDatabase[Math.floor(Math.random() * fortuneDatabase.length)];
+            
+            // 使用 SweetAlert2 顯示 Rich Content
+            Swal.fire({
+                title: `<span style="color:${result.color}">${result.type}</span>`,
+                html: `
+                    <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 15px;">
+                        ${result.text}
+                    </div>
+                    
+                    <!-- 商業化導購區塊 -->
+                    <div class="promo-card">
+                        <div class="promo-title">👇 今日開運處方 👇</div>
+                        <div class="promo-product">
+                            <img src="https://placehold.co/100x100/ffeaa7/d35400?text=Cookie" class="promo-img">
+                            <div class="promo-info">
+                                <h4>${result.product}</h4>
+                                <div style="font-size: 0.8em; color: #666;">${result.desc}</div>
+                                <div class="coupon-code">折扣碼: ${result.coupon}</div>
+                            </div>
+                        </div>
+                        <a href="#" class="buy-btn" onclick="Swal.close()">立即購買開運餅乾</a>
+                    </div>
+                `,
+                icon: 'success', // 或使用 customClass.icon 自定義圖片
+                confirmButtonText: '收下好運',
+                confirmButtonColor: '#ff5a78',
+                background: '#fff',
+                showClass: {
+                    popup: 'animate__animated animate__bounceIn'
+                }
+            });
+        }
+
+        // 4. PC 滑鼠搖晃偵測邏輯
+        function initMouseShake() {
+            let lastX = 0;
+            let lastY = 0;
+            let totalDistance = 0;
+            let timeout;
+            const SHAKE_THRESHOLD = 500; // 觸發門檻 (像素)
+
+            document.addEventListener('mousemove', (e) => {
+                if (shakeDebounce) return; // 如果正在抽籤中，不偵測
+
+                if (lastX === 0 && lastY === 0) {
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                    return;
+                }
+
+                const deltaX = Math.abs(e.clientX - lastX);
+                const deltaY = Math.abs(e.clientY - lastY);
+                
+                // 只有快速移動才算
+                if (deltaX + deltaY > 10) { 
+                    totalDistance += (deltaX + deltaY);
+                }
+
+                lastX = e.clientX;
+                lastY = e.clientY;
+
+                // 檢查是否達到搖晃門檻
+                if (totalDistance > SHAKE_THRESHOLD) {
+                    console.log("Mouse Shake Detected!");
+                    getFortune();
+                    totalDistance = 0;
+                }
+
+                // 如果停下來超過 0.2 秒，距離歸零
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    totalDistance = 0;
+                }, 200);
+            });
+        }
+
+        // 5. 手機陀螺儀搖晃偵測
+        function initDeviceShake() {
+            let lastX, lastY, lastZ;
+            let moveCounter = 0;
+
+            if (window.DeviceMotionEvent) {
+                window.addEventListener('devicemotion', function(event) {
+                    if(shakeDebounce) return;
+
+                    let acc = event.accelerationIncludingGravity;
+                    if(!acc.x) return;
+
+                    if(!lastX) {
+                        lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+                        return;
+                    }
+
+                    let deltaX = Math.abs(acc.x - lastX);
+                    let deltaY = Math.abs(acc.y - lastY);
+                    let deltaZ = Math.abs(acc.z - lastZ);
+
+                    if(deltaX + deltaY + deltaZ > 25) { // 搖晃閾值
+                        moveCounter++;
+                        if(moveCounter > 5) {
+                            getFortune();
+                            moveCounter = 0;
+                        }
+                    } else {
+                        moveCounter = Math.max(0, moveCounter - 1);
+                    }
+
+                    lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+                }, false);
+            }
+        }
+
+        // 初始化
+        window.onload = () => {
+            initMouseShake();
+            initDeviceShake();
+        };
+
+    </script>
+</body>
+</html>
